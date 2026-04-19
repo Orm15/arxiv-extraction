@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>arXiv AI Digest</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f9f9f9;
+      --surface: #ffffff;
+      --border: rgba(0,0,0,0.1);
+      --border-strong: rgba(0,0,0,0.18);
+      --text: #111111;
+      --text-secondary: #555555;
+      --text-muted: #888888;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --accent-hover: #1d4ed8;
+      --green: #16a34a;
+      --green-bg: #f0fdf4;
+      --red: #dc2626;
+      --yellow: #ca8a04;
+      --yellow-bg: #fefce8;
+      --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
+      --radius: 6px;
+      --radius-sm: 4px;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text);
+      background: var(--bg);
+      min-height: 100vh;
+    }
+
+    /* ── Topbar ── */
+    #topbar {
+      background: var(--surface);
+      border-bottom: 0.5px solid var(--border-strong);
+      padding: 0 24px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: -0.3px;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .topbar-logo svg {
+      color: var(--accent);
+    }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .status-dot {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+    .status-dot .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #9ca3af;
+    }
+    .status-dot.today .dot { background: var(--green); }
+    .status-dot.today { color: var(--green); font-weight: 500; }
+
+    /* ── Main layout ── */
+    #main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+    }
+
+    /* ── Section titles ── */
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    /* ── Stats row ── */
+    #stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border-strong);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+    }
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .stat-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.2;
+    }
+    .stat-sub {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* ── Phase banner ── */
+    #phase-banner {
+      background: var(--surface);
+      border: 0.5px solid var(--border-strong);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    .phase-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .phase-name {
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .phase-week {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    .phase-topics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .phase-topic-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+    .phase-topic-badge.priority {
+      background: #eff6ff;
+      color: #2563eb;
+      border: 0.5px solid #bfdbfe;
+    }
+    .phase-topic-badge.secondary {
+      background: #f0fdf4;
+      color: #16a34a;
+      border: 0.5px solid #bbf7d0;
+    }
+    .progress-bar-wrap {
+      height: 5px;
+      background: #e5e7eb;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 10px;
+      transition: width 0.3s ease;
+    }
+    .progress-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 5px;
+    }
+
+    /* ── Tentative list ── */
+    #tentative-section {
+      margin-bottom: 24px;
+    }
+    .tentative-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .tentative-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .tentative-counter {
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: var(--accent-light);
+      color: var(--accent);
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .tentative-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border-strong);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      box-shadow: var(--shadow);
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      transition: opacity 0.2s, background 0.2s;
+    }
+    .tentative-card.checked {
+      opacity: 0.5;
+      background: #fafafa;
+    }
+    .tentative-card.checked .tc-title {
+      text-decoration: line-through;
+      color: var(--text-secondary);
+    }
+    .tc-checkbox {
+      width: 18px;
+      height: 18px;
+      margin-top: 2px;
+      cursor: pointer;
+      flex-shrink: 0;
+      accent-color: var(--accent);
+    }
+    .tc-body { flex: 1; min-width: 0; }
+    .tc-badges {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 7px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge-alta { background: #fee2e2; color: #b91c1c; border: 0.5px solid #fca5a5; }
+    .badge-media { background: #fef9c3; color: #92400e; border: 0.5px solid #fde68a; }
+    .badge-baja { background: #f1f5f9; color: #475569; border: 0.5px solid #cbd5e1; }
+    .tc-title {
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.4;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    .tc-authors {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tc-reason {
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+    .tc-links { display: flex; gap: 8px; }
+    .btn-link {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: var(--radius-sm);
+      border: 0.5px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      text-decoration: none;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-link:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .btn-link.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .btn-link.primary:hover { background: var(--accent-hover); }
+
+    /* ── Weekly progress ── */
+    #weekly-progress {
+      background: var(--surface);
+      border: 0.5px solid var(--border-strong);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    .weekly-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .weekly-label { font-size: 13px; font-weight: 500; }
+    .weekly-count {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      height: 0.5px;
+      background: var(--border-strong);
+      margin: 24px 0;
+    }
+
+    /* ── All papers section ── */
+    #all-papers-section { margin-bottom: 24px; }
+    .papers-nav {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .nav-btn {
+      font-size: 13px;
+      padding: 5px 12px;
+      border-radius: var(--radius-sm);
+      border: 0.5px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .nav-date {
+      font-size: 13px;
+      font-weight: 600;
+      padding: 5px 0;
+    }
+    .topic-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .topic-pill {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 20px;
+      border: 0.5px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .topic-pill.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .topic-pill:hover:not(.active) {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .papers-list { display: flex; flex-direction: column; gap: 8px; }
+    .paper-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border-strong);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+    }
+    .paper-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .paper-title {
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.4;
+      color: var(--text);
+    }
+    .paper-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .paper-authors {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .paper-date {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .paper-abstract {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+    .paper-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .paper-cats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .cat-badge {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: var(--radius-sm);
+      background: #f1f5f9;
+      color: #475569;
+      border: 0.5px solid #e2e8f0;
+    }
+    .paper-actions { display: flex; gap: 6px; }
+    .btn-add-tentative {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: var(--radius-sm);
+      border: 0.5px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-add-tentative:hover {
+      background: var(--accent-light);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .btn-add-tentative.added {
+      background: var(--green-bg);
+      border-color: #86efac;
+      color: var(--green);
+    }
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* ── Archive ── */
+    #archive-section { margin-bottom: 24px; }
+    .archive-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      padding: 10px 0;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      border-top: 0.5px solid var(--border-strong);
+    }
+    .archive-toggle:hover { color: var(--accent); }
+    .archive-toggle svg { transition: transform 0.2s; }
+    .archive-toggle.open svg { transform: rotate(90deg); }
+    #archive-list {
+      display: none;
+      background: var(--surface);
+      border: 0.5px solid var(--border-strong);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    #archive-list.visible { display: block; }
+    .archive-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      border-bottom: 0.5px solid var(--border);
+      cursor: pointer;
+      transition: background 0.1s;
+      font-size: 13px;
+    }
+    .archive-item:last-child { border-bottom: none; }
+    .archive-item:hover { background: var(--accent-light); }
+    .archive-item.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+    .archive-count { font-size: 11px; color: var(--text-muted); }
+
+    /* ── Topic colors ── */
+    .topic-color-agents     { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+    .topic-color-rag        { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+    .topic-color-fine_tuning { background: #fdf4ff; color: #7e22ce; border-color: #e9d5ff; }
+    .topic-color-mlops      { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+    .topic-color-multimodal { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+    .topic-color-graphrag   { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+    .topic-color-sentiment  { background: #fefce8; color: #92400e; border-color: #fde68a; }
+    .topic-color-cloud_ai   { background: #f0f9ff; color: #0369a1; border-color: #bae6fd; }
+    .topic-color-default    { background: #f8fafc; color: #475569; border-color: #e2e8f0; }
+
+    /* ── Loading / error ── */
+    #loading-overlay {
+      position: fixed; inset: 0; background: rgba(255,255,255,0.85);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200; font-size: 14px; color: var(--text-secondary);
+    }
+    #loading-overlay.hidden { display: none; }
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid var(--border-strong);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-right: 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 640px) {
+      #stats-row { grid-template-columns: repeat(2, 1fr); }
+      #topbar { padding: 0 16px; }
+      #main { padding: 20px 12px 40px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  Cargando digest...
+</div>
+
+<!-- TOPBAR -->
+<header id="topbar">
+  <div class="topbar-left">
+    <a class="topbar-logo" href="#">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10 9 9 9 8 9"/>
+      </svg>
+      arXiv Digest
+    </a>
+  </div>
+  <div class="topbar-right">
+    <span id="status-indicator" class="status-dot">
+      <span class="dot"></span>
+      <span id="status-text">Cargando...</span>
+    </span>
+    <span id="last-updated" style="font-size:12px;color:var(--text-muted)"></span>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main id="main">
+
+  <!-- Stats row -->
+  <div id="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Papers hoy</div>
+      <div class="stat-value" id="stat-today">—</div>
+      <div class="stat-sub" id="stat-today-date">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Leídos hoy</div>
+      <div class="stat-value" id="stat-read">0</div>
+      <div class="stat-sub" id="stat-read-sub">de 0 en lista</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total acumulado</div>
+      <div class="stat-value" id="stat-total">—</div>
+      <div class="stat-sub">en todos los días</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Días seguidos</div>
+      <div class="stat-value" id="stat-streak">—</div>
+      <div class="stat-sub">días con digest</div>
+    </div>
+  </div>
+
+  <!-- Phase banner -->
+  <div id="phase-banner">
+    <div class="phase-header">
+      <div>
+        <div class="phase-name" id="phase-name">—</div>
+        <div class="phase-week" id="phase-week">—</div>
+      </div>
+    </div>
+    <div class="phase-topics" id="phase-topics"></div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="phase-progress-fill" style="width:0%"></div>
+    </div>
+    <div class="progress-label" id="phase-progress-label"></div>
+  </div>
+
+  <!-- Tentative list -->
+  <section id="tentative-section">
+    <div class="tentative-header">
+      <div class="tentative-title">Lista tentativa — para leer hoy</div>
+      <div class="tentative-counter" id="tentative-counter">0 / 0</div>
+    </div>
+    <div id="tentative-list"></div>
+  </section>
+
+  <!-- Weekly progress -->
+  <div id="weekly-progress">
+    <div class="weekly-header">
+      <span class="weekly-label">Leídos esta semana</span>
+      <span class="weekly-count" id="weekly-count">0 / 0</span>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="weekly-progress-fill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- All papers section -->
+  <section id="all-papers-section">
+    <div class="papers-nav">
+      <button class="nav-btn" id="nav-prev" onclick="navigateDate(-1)">← Anterior</button>
+      <span class="nav-date" id="nav-current-date">—</span>
+      <button class="nav-btn" id="nav-next" onclick="navigateDate(1)">Siguiente →</button>
+    </div>
+    <div class="topic-filters" id="topic-filters"></div>
+    <div class="papers-list" id="papers-list"></div>
+  </section>
+
+  <!-- Archive -->
+  <section id="archive-section">
+    <button class="archive-toggle" id="archive-toggle" onclick="toggleArchive()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+      Archivo — todos los digests
+    </button>
+    <div id="archive-list"></div>
+  </section>
+
+</main>
+
+<script>
+// ─────────────────────────────────────────────
+// State
+// ─────────────────────────────────────────────
+let state = {
+  index: null,          // index.json
+  digestCache: {},      // date -> digest data
+  currentDate: null,    // currently viewed date string
+  allDates: [],         // sorted desc
+  activeTopicFilter: null,
+  localTentative: {},   // extra papers added via "+ Lista"
+};
+
+// ─────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function formatDate(str) {
+  if (!str) return '—';
+  const [y, m, d] = str.split('-');
+  const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
+}
+
+function formatDatetime(isoStr) {
+  if (!isoStr) return '';
+  const d = new Date(isoStr);
+  return d.toLocaleString('es-PE', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+function topicColorClass(key) {
+  const map = {
+    agents: 'topic-color-agents',
+    rag: 'topic-color-rag',
+    fine_tuning: 'topic-color-fine_tuning',
+    mlops: 'topic-color-mlops',
+    multimodal: 'topic-color-multimodal',
+    graphrag: 'topic-color-graphrag',
+    sentiment: 'topic-color-sentiment',
+    cloud_ai: 'topic-color-cloud_ai',
+  };
+  return map[key] || 'topic-color-default';
+}
+
+function readKey(dateStr, paperId) {
+  return `read_${dateStr}_${paperId}`;
+}
+
+function tentativeAddedKey(dateStr, paperId) {
+  return `tentative_added_${dateStr}_${paperId}`;
+}
+
+function isRead(dateStr, paperId) {
+  return localStorage.getItem(readKey(dateStr, paperId)) === '1';
+}
+
+function setRead(dateStr, paperId, val) {
+  if (val) localStorage.setItem(readKey(dateStr, paperId), '1');
+  else localStorage.removeItem(readKey(dateStr, paperId));
+}
+
+function isTentativeAdded(dateStr, paperId) {
+  return localStorage.getItem(tentativeAddedKey(dateStr, paperId)) === '1';
+}
+
+function setTentativeAdded(dateStr, paperId, val) {
+  if (val) localStorage.setItem(tentativeAddedKey(dateStr, paperId), '1');
+  else localStorage.removeItem(tentativeAddedKey(dateStr, paperId));
+}
+
+function getWeekDates() {
+  // Returns last 7 date strings (Mon-Sun or rolling week)
+  const dates = [];
+  const now = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    dates.push(d.toISOString().slice(0, 10));
+  }
+  return dates;
+}
+
+function computeStreak(dates) {
+  if (!dates || dates.length === 0) return 0;
+  const sorted = [...dates].sort().reverse();
+  const today = todayStr();
+  let streak = 0;
+  let check = today;
+  for (const d of sorted) {
+    if (d === check) {
+      streak++;
+      const dt = new Date(check);
+      dt.setDate(dt.getDate() - 1);
+      check = dt.toISOString().slice(0, 10);
+    } else if (d < check) {
+      break;
+    }
+  }
+  return streak;
+}
+
+function collectAllPapers(digestData) {
+  if (!digestData) return [];
+  const all = [];
+  for (const papers of Object.values(digestData.by_topic || {})) {
+    all.push(...papers);
+  }
+  return all;
+}
+
+// Build full paper map by id from digest
+function buildPaperMap(digestData) {
+  const map = {};
+  for (const papers of Object.values(digestData.by_topic || {})) {
+    for (const p of papers) map[p.id] = p;
+  }
+  return map;
+}
+
+// ─────────────────────────────────────────────
+// Data loading
+// ─────────────────────────────────────────────
+async function fetchJSON(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status} — ${url}`);
+  return res.json();
+}
+
+async function loadIndex() {
+  return fetchJSON('./data/index.json');
+}
+
+async function loadDigest(dateStr) {
+  if (state.digestCache[dateStr]) return state.digestCache[dateStr];
+  const data = await fetchJSON(`./data/${dateStr}.json`);
+  state.digestCache[dateStr] = data;
+  return data;
+}
+
+// ─────────────────────────────────────────────
+// Render: topbar
+// ─────────────────────────────────────────────
+function renderTopbar(index, digestDate) {
+  const isToday = digestDate === todayStr();
+  const indicator = document.getElementById('status-indicator');
+  const statusText = document.getElementById('status-text');
+  const lastUpdated = document.getElementById('last-updated');
+
+  if (isToday) {
+    indicator.className = 'status-dot today';
+    statusText.textContent = '● Actualizado hoy';
+  } else {
+    indicator.className = 'status-dot';
+    statusText.textContent = '● Último: ' + formatDate(digestDate);
+  }
+
+  if (index && index.last_updated) {
+    lastUpdated.textContent = formatDatetime(index.last_updated);
+  }
+}
+
+// ─────────────────────────────────────────────
+// Render: stats
+// ─────────────────────────────────────────────
+function renderStats(index, digestData, digestDate) {
+  const today = todayStr();
+  const todayPapers = digestDate === today ? (digestData ? digestData.total : 0) : 0;
+  document.getElementById('stat-today').textContent = digestData ? digestData.total : '0';
+  document.getElementById('stat-today-date').textContent = formatDate(digestDate);
+
+  // Leídos hoy: count checked items in tentative list for today
+  const tentativeItems = getTentativeForDate(digestData, digestDate);
+  const readCount = tentativeItems.filter(t => isRead(digestDate, t.paper_id)).length;
+  document.getElementById('stat-read').textContent = readCount;
+  document.getElementById('stat-read-sub').textContent = `de ${tentativeItems.length} en lista`;
+
+  document.getElementById('stat-total').textContent =
+    index ? (index.total_papers || 0).toLocaleString() : '—';
+
+  const streak = computeStreak(index ? index.dates : []);
+  document.getElementById('stat-streak').textContent = streak;
+}
+
+// ─────────────────────────────────────────────
+// Render: phase banner
+// ─────────────────────────────────────────────
+function renderPhaseBanner(index) {
+  if (!index) return;
+  const phaseName = index.current_phase || '—';
+  const currentWeek = index.current_week || 1;
+
+  // Map phase id to display name from known phases
+  const phaseDisplayNames = {
+    'fase_0': 'Paralelo tesis',
+    'fase_1': 'Foundation — Python + Agents',
+    'fase_2': 'Multi-Agent + Observability',
+    'fase_3': 'Cloud Profundidad',
+    'fase_4': 'MLOps + Fine-tuning',
+    'fase_5': 'Flagship Project + Portfolio',
+  };
+  const phaseTotalWeeks = { fase_0:4, fase_1:6, fase_2:6, fase_3:6, fase_4:6, fase_5:8 };
+  const phaseTopics = {
+    fase_0: { priority: [], secondary: [] },
+    fase_1: { priority: ['agents'], secondary: ['rag'] },
+    fase_2: { priority: ['agents','mlops'], secondary: ['rag','multimodal'] },
+    fase_3: { priority: ['cloud_ai','mlops'], secondary: ['agents'] },
+    fase_4: { priority: ['fine_tuning','mlops'], secondary: ['agents','graphrag'] },
+    fase_5: { priority: ['agents','rag','graphrag'], secondary: ['mlops','multimodal'] },
+  };
+  const topicLabels = {
+    agents: 'AI Agents', rag: 'RAG & KG', fine_tuning: 'Fine-tuning',
+    mlops: 'MLOps', multimodal: 'Multimodal', graphrag: 'GraphRAG',
+    sentiment: 'Sentiment', cloud_ai: 'Cloud AI',
+  };
+
+  document.getElementById('phase-name').textContent =
+    phaseDisplayNames[phaseName] || phaseName;
+  document.getElementById('phase-week').textContent =
+    `Semana ${currentWeek} de ${phaseTotalWeeks[phaseName] || '?'}`;
+
+  const topicsEl = document.getElementById('phase-topics');
+  topicsEl.innerHTML = '';
+  const pt = phaseTopics[phaseName] || { priority: [], secondary: [] };
+  for (const t of pt.priority) {
+    const b = document.createElement('span');
+    b.className = 'phase-topic-badge priority';
+    b.textContent = topicLabels[t] || t;
+    topicsEl.appendChild(b);
+  }
+  for (const t of pt.secondary) {
+    const b = document.createElement('span');
+    b.className = 'phase-topic-badge secondary';
+    b.textContent = topicLabels[t] || t;
+    topicsEl.appendChild(b);
+  }
+
+  const total = phaseTotalWeeks[phaseName] || 1;
+  const pct = Math.min(100, Math.round((currentWeek / total) * 100));
+  document.getElementById('phase-progress-fill').style.width = pct + '%';
+  document.getElementById('phase-progress-label').textContent =
+    `${pct}% completado (semana ${currentWeek}/${total})`;
+}
+
+// ─────────────────────────────────────────────
+// Tentative list helpers
+// ─────────────────────────────────────────────
+function getTentativeForDate(digestData, dateStr) {
+  if (!digestData) return [];
+  const paperMap = buildPaperMap(digestData);
+  const base = (digestData.tentative_list || []).map(t => ({
+    ...t,
+    paper: paperMap[t.paper_id],
+  })).filter(t => t.paper);
+
+  // Add locally-added papers
+  const localKey = `tentative_${dateStr}`;
+  let local = [];
+  try { local = JSON.parse(localStorage.getItem(localKey) || '[]'); } catch {}
+  for (const entry of local) {
+    if (!base.find(t => t.paper_id === entry.paper_id) && paperMap[entry.paper_id]) {
+      base.push({ ...entry, paper: paperMap[entry.paper_id] });
+    }
+  }
+  return base;
+}
+
+function addToLocalTentative(dateStr, paper) {
+  const localKey = `tentative_${dateStr}`;
+  let local = [];
+  try { local = JSON.parse(localStorage.getItem(localKey) || '[]'); } catch {}
+  if (!local.find(t => t.paper_id === paper.id)) {
+    local.push({ paper_id: paper.id, priority: 'media', reason: 'agregado manualmente' });
+    localStorage.setItem(localKey, JSON.stringify(local));
+    setTentativeAdded(dateStr, paper.id, true);
+  }
+}
+
+// ─────────────────────────────────────────────
+// Render: tentative list
+// ─────────────────────────────────────────────
+function renderTentativeList(digestData, dateStr) {
+  const items = getTentativeForDate(digestData, dateStr);
+  const container = document.getElementById('tentative-list');
+  container.innerHTML = '';
+
+  if (items.length === 0) {
+    container.innerHTML = '<div class="empty-state">No hay lista tentativa para este día.</div>';
+    updateTentativeCounter(0, 0);
+    return;
+  }
+
+  for (const item of items) {
+    const p = item.paper;
+    if (!p) continue;
+    const checked = isRead(dateStr, p.id);
+    const card = document.createElement('div');
+    card.className = 'tentative-card' + (checked ? ' checked' : '');
+    card.dataset.paperId = p.id;
+
+    const authorsList = (p.authors || []).slice(0, 3).join(', ') +
+      (p.authors && p.authors.length > 3 ? ' et al.' : '');
+
+    card.innerHTML = `
+      <input type="checkbox" class="tc-checkbox" ${checked ? 'checked' : ''}
+        onchange="toggleRead('${dateStr}','${p.id}',this.checked)" />
+      <div class="tc-body">
+        <div class="tc-badges">
+          <span class="badge ${getBadgeClass(item.priority)}">${item.priority}</span>
+          <span class="badge ${topicColorClass(p.topic_key)}" style="font-size:10px;padding:1px 7px;border-radius:20px;font-weight:500;">${escHtml(p.topic_label)}</span>
+        </div>
+        <div class="tc-title">${escHtml(p.title)}</div>
+        <div class="tc-authors">${escHtml(authorsList)}</div>
+        <div class="tc-reason">${escHtml(item.reason || '')}</div>
+        <div class="tc-links">
+          <a class="btn-link primary" href="${escHtml(p.pdf_url)}" target="_blank" rel="noopener">PDF →</a>
+          <a class="btn-link" href="${escHtml(p.url)}" target="_blank" rel="noopener">arXiv</a>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  }
+
+  const readCount = items.filter(t => t.paper && isRead(dateStr, t.paper.id)).length;
+  updateTentativeCounter(readCount, items.length);
+}
+
+function getBadgeClass(priority) {
+  if (priority === 'alta') return 'badge-alta';
+  if (priority === 'media') return 'badge-media';
+  return 'badge-baja';
+}
+
+function updateTentativeCounter(read, total) {
+  document.getElementById('tentative-counter').textContent = `${read} / ${total}`;
+  document.getElementById('stat-read').textContent = read;
+  document.getElementById('stat-read-sub').textContent = `de ${total} en lista`;
+}
+
+function toggleRead(dateStr, paperId, checked) {
+  setRead(dateStr, paperId, checked);
+  const card = document.querySelector(`.tentative-card[data-paper-id="${paperId}"]`);
+  if (card) card.classList.toggle('checked', checked);
+
+  // Update counter
+  const items = getTentativeForDate(state.digestCache[dateStr], dateStr);
+  const readCount = items.filter(t => t.paper && isRead(dateStr, t.paper.id)).length;
+  updateTentativeCounter(readCount, items.length);
+  renderWeeklyProgress();
+}
+
+// ─────────────────────────────────────────────
+// Render: weekly progress
+// ─────────────────────────────────────────────
+function renderWeeklyProgress() {
+  const weekDates = getWeekDates();
+  let total = 0, read = 0;
+  for (const d of weekDates) {
+    const digest = state.digestCache[d];
+    if (!digest) continue;
+    const items = getTentativeForDate(digest, d);
+    total += items.length;
+    read += items.filter(t => t.paper && isRead(d, t.paper.id)).length;
+  }
+  document.getElementById('weekly-count').textContent = `${read} / ${total}`;
+  const pct = total > 0 ? Math.round((read / total) * 100) : 0;
+  document.getElementById('weekly-progress-fill').style.width = pct + '%';
+}
+
+// ─────────────────────────────────────────────
+// Render: all papers
+// ─────────────────────────────────────────────
+function renderAllPapers(digestData, dateStr) {
+  // Navigation
+  document.getElementById('nav-current-date').textContent = formatDate(dateStr);
+  const idx = state.allDates.indexOf(dateStr);
+  document.getElementById('nav-prev').disabled = idx >= state.allDates.length - 1;
+  document.getElementById('nav-next').disabled = idx <= 0;
+
+  if (!digestData) {
+    document.getElementById('topic-filters').innerHTML = '';
+    document.getElementById('papers-list').innerHTML =
+      '<div class="empty-state">No hay datos para esta fecha.</div>';
+    return;
+  }
+
+  const allPapers = collectAllPapers(digestData);
+
+  // Build topic filter pills
+  const byTopic = digestData.by_topic || {};
+  const topicsFiltersEl = document.getElementById('topic-filters');
+  topicsFiltersEl.innerHTML = '';
+
+  const allPill = document.createElement('button');
+  allPill.className = 'topic-pill' + (state.activeTopicFilter === null ? ' active' : '');
+  allPill.textContent = `Todos (${allPapers.length})`;
+  allPill.onclick = () => { state.activeTopicFilter = null; renderAllPapers(digestData, dateStr); };
+  topicsFiltersEl.appendChild(allPill);
+
+  for (const [topicKey, papers] of Object.entries(byTopic)) {
+    const label = papers[0]?.topic_label || topicKey;
+    const pill = document.createElement('button');
+    pill.className = 'topic-pill' + (state.activeTopicFilter === topicKey ? ' active' : '');
+    pill.textContent = `${label} (${papers.length})`;
+    pill.onclick = () => { state.activeTopicFilter = topicKey; renderAllPapers(digestData, dateStr); };
+    topicsFiltersEl.appendChild(pill);
+  }
+
+  // Filter papers
+  let filtered = allPapers;
+  if (state.activeTopicFilter) {
+    filtered = allPapers.filter(p => p.topic_key === state.activeTopicFilter);
+  }
+
+  const listEl = document.getElementById('papers-list');
+  listEl.innerHTML = '';
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<div class="empty-state">No hay papers para este filtro.</div>';
+    return;
+  }
+
+  for (const paper of filtered) {
+    const card = createPaperCard(paper, dateStr);
+    listEl.appendChild(card);
+  }
+}
+
+function createPaperCard(paper, dateStr) {
+  const card = document.createElement('div');
+  card.className = 'paper-card';
+
+  const authorsList = (paper.authors || []).slice(0, 4).join(', ') +
+    (paper.authors && paper.authors.length > 4 ? ' et al.' : '');
+  const abstract = (paper.abstract || '').slice(0, 300) +
+    ((paper.abstract || '').length > 300 ? '…' : '');
+  const added = isTentativeAdded(dateStr, paper.id);
+
+  card.innerHTML = `
+    <div class="paper-card-header">
+      <div class="paper-title">${escHtml(paper.title)}</div>
+      <span class="badge ${topicColorClass(paper.topic_key)}" style="flex-shrink:0;font-size:10px;padding:1px 7px;border-radius:20px;">${escHtml(paper.topic_label)}</span>
+    </div>
+    <div class="paper-meta">
+      <span class="paper-authors">${escHtml(authorsList)}</span>
+      <span class="paper-date" style="color:var(--border-strong)">·</span>
+      <span class="paper-date">${formatDate(paper.published)}</span>
+    </div>
+    <div class="paper-abstract">${escHtml(abstract)}</div>
+    <div class="paper-footer">
+      <div class="paper-cats">
+        ${(paper.categories || []).map(c => `<span class="cat-badge">${escHtml(c)}</span>`).join('')}
+      </div>
+      <div class="paper-actions">
+        <button class="btn-add-tentative${added ? ' added' : ''}" id="btn-add-${paper.id}"
+          onclick="addPaperToTentative('${dateStr}','${paper.id}')">
+          ${added ? '✓ Agregado' : '+ Lista'}
+        </button>
+        <a class="btn-link primary" href="${escHtml(paper.pdf_url)}" target="_blank" rel="noopener">PDF →</a>
+        <a class="btn-link" href="${escHtml(paper.url)}" target="_blank" rel="noopener">arXiv</a>
+      </div>
+    </div>
+  `;
+  return card;
+}
+
+function addPaperToTentative(dateStr, paperId) {
+  const digestData = state.digestCache[dateStr];
+  if (!digestData) return;
+  const paperMap = buildPaperMap(digestData);
+  const paper = paperMap[paperId];
+  if (!paper) return;
+  addToLocalTentative(dateStr, paper);
+
+  const btn = document.getElementById('btn-add-' + paperId);
+  if (btn) {
+    btn.textContent = '✓ Agregado';
+    btn.classList.add('added');
+  }
+
+  // Re-render tentative list if viewing same date
+  if (dateStr === state.currentDate) {
+    renderTentativeList(digestData, dateStr);
+  }
+}
+
+// ─────────────────────────────────────────────
+// Render: archive
+// ─────────────────────────────────────────────
+function renderArchive(dates, currentDate) {
+  const container = document.getElementById('archive-list');
+  container.innerHTML = '';
+  for (const d of dates) {
+    const item = document.createElement('div');
+    item.className = 'archive-item' + (d === currentDate ? ' active' : '');
+    const count = state.digestCache[d]?.total || '—';
+    item.innerHTML = `
+      <span>${formatDate(d)}</span>
+      <span class="archive-count">${count} papers</span>
+    `;
+    item.onclick = () => switchToDate(d);
+    container.appendChild(item);
+  }
+}
+
+function toggleArchive() {
+  const list = document.getElementById('archive-list');
+  const toggle = document.getElementById('archive-toggle');
+  const open = list.classList.toggle('visible');
+  toggle.classList.toggle('open', open);
+}
+
+// ─────────────────────────────────────────────
+// Navigation
+// ─────────────────────────────────────────────
+function navigateDate(direction) {
+  const idx = state.allDates.indexOf(state.currentDate);
+  const newIdx = idx - direction; // allDates is sorted desc, so next=idx-1
+  if (newIdx < 0 || newIdx >= state.allDates.length) return;
+  switchToDate(state.allDates[newIdx]);
+}
+
+async function switchToDate(dateStr) {
+  state.currentDate = dateStr;
+  state.activeTopicFilter = null;
+
+  try {
+    const digestData = await loadDigest(dateStr);
+    renderAllSections(state.index, digestData, dateStr);
+  } catch (e) {
+    renderAllPapers(null, dateStr);
+  }
+  renderArchive(state.allDates, dateStr);
+
+  // Scroll to top smoothly
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─────────────────────────────────────────────
+// Full re-render
+// ─────────────────────────────────────────────
+function renderAllSections(index, digestData, dateStr) {
+  renderTopbar(index, dateStr);
+  renderStats(index, digestData, dateStr);
+  renderPhaseBanner(index);
+  renderTentativeList(digestData, dateStr);
+  renderWeeklyProgress();
+  renderAllPapers(digestData, dateStr);
+}
+
+// ─────────────────────────────────────────────
+// Escape HTML
+// ─────────────────────────────────────────────
+function escHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// ─────────────────────────────────────────────
+// Bootstrap
+// ─────────────────────────────────────────────
+async function init() {
+  const overlay = document.getElementById('loading-overlay');
+  try {
+    const index = await loadIndex();
+    state.index = index;
+    state.allDates = (index.dates || []).sort().reverse();
+
+    if (state.allDates.length === 0) {
+      overlay.classList.add('hidden');
+      document.getElementById('papers-list').innerHTML =
+        '<div class="empty-state">No hay digests disponibles aún. Ejecuta <code>arxiv-digest</code> para generar el primero.</div>';
+      return;
+    }
+
+    // Try today first, fall back to most recent
+    const today = todayStr();
+    let targetDate = state.allDates.includes(today) ? today : state.allDates[0];
+    state.currentDate = targetDate;
+
+    // Preload this digest
+    const digestData = await loadDigest(targetDate);
+
+    renderAllSections(index, digestData, targetDate);
+    renderArchive(state.allDates, targetDate);
+
+    overlay.classList.add('hidden');
+  } catch (e) {
+    overlay.innerHTML = `
+      <div style="text-align:center;color:var(--red)">
+        <div style="font-size:18px;margin-bottom:8px">⚠</div>
+        <div>No se pudo cargar el digest.</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px">${escHtml(e.message)}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:8px">Asegúrate de que existe <code>docs/data/index.json</code></div>
+      </div>
+    `;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

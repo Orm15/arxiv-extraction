@@ -1,0 +1,39 @@
+current_phase: "fase_1"
+current_week: 7
+
+phases:
+  fase_0:
+    name: "Paralelo tesis"
+    total_weeks: 4
+    priority_topics: []
+    secondary_topics: []
+
+  fase_1:
+    name: "Foundation — Python + Agents"
+    total_weeks: 6
+    priority_topics: [agents]
+    secondary_topics: [rag]
+
+  fase_2:
+    name: "Multi-Agent + Observability"
+    total_weeks: 6
+    priority_topics: [agents, mlops]
+    secondary_topics: [rag, multimodal]
+
+  fase_3:
+    name: "Cloud Profundidad"
+    total_weeks: 6
+    priority_topics: [cloud_ai, mlops]
+    secondary_topics: [agents]
+
+  fase_4:
+    name: "MLOps + Fine-tuning"
+    total_weeks: 6
+    priority_topics: [fine_tuning, mlops]
+    secondary_topics: [agents, graphrag]
+
+  fase_5:
+    name: "Flagship Project + Portfolio"
+    total_weeks: 8
+    priority_topics: [agents, rag, graphrag]
+    secondary_topics: [mlops, multimodal]

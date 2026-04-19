@@ -1,0 +1,50 @@
+name: Daily arXiv Digest
+
+on:
+  schedule:
+    - cron: "0 13 * * *"
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "Días hacia atrás"
+        default: "1"
+      topics:
+        description: "Topics separados por espacio (vacío = todos)"
+        default: ""
+
+jobs:
+  fetch-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t arxiv-digest .
+
+      - name: Fetch papers
+        run: |
+          DAYS="${{ github.event.inputs.days || '1' }}"
+          TOPICS="${{ github.event.inputs.topics }}"
+          mkdir -p docs/data
+          if [ -n "$TOPICS" ]; then
+            docker run --rm \
+              -v ${{ github.workspace }}/docs:/app/docs \
+              -v ${{ github.workspace }}/config:/app/config \
+              arxiv-digest --days $DAYS --topics $TOPICS
+          else
+            docker run --rm \
+              -v ${{ github.workspace }}/docs:/app/docs \
+              -v ${{ github.workspace }}/config:/app/config \
+              arxiv-digest --days $DAYS
+          fi
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          publish_branch: gh-pages
+          commit_message: "digest: ${{ github.run_id }}"

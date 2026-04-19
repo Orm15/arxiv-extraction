@@ -1,0 +1,40 @@
+topics:
+  agents:
+    label: "AI Agents"
+    query: "LLM autonomous agents multi-agent orchestration"
+
+  rag:
+    label: "RAG & Knowledge Graphs"
+    query: "retrieval augmented generation RAG knowledge graph GraphRAG"
+
+  fine_tuning:
+    label: "Fine-tuning"
+    query: "fine-tuning LoRA QLoRA instruction tuning RLHF"
+
+  mlops:
+    label: "MLOps"
+    query: "MLOps LLMOps model deployment serving inference optimization"
+
+  multimodal:
+    label: "Multimodal AI"
+    query: "multimodal large language model vision audio speech"
+
+  graphrag:
+    label: "GraphRAG"
+    query: "GraphRAG knowledge graph reasoning question answering"
+
+  sentiment:
+    label: "Sentiment & NLP"
+    query: "sentiment analysis political social media opinion NLP"
+
+  cloud_ai:
+    label: "Cloud & Edge AI"
+    query: "cloud machine learning inference edge deployment scalable"
+
+categories:
+  - cs.AI
+  - cs.LG
+  - cs.CL
+  - cs.IR
+  - cs.CV
+  - cs.MA

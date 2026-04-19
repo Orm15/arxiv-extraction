@@ -1,0 +1,9 @@
+services:
+  digest:
+    build: .
+    volumes:
+      - ./docs:/app/docs
+      - ./config:/app/config
+    environment:
+      - TZ=America/Lima
+    command: ["--days", "1"]
