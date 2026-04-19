@@ -95,7 +95,10 @@ class DigestService:
             tentative_list=tentative,
         )
 
-        self._storage.save_digest(digest, phase_id, current_week)
+        if digest.total() == 0:
+            print("\nSin papers nuevos — no se guarda digest vacío.")
+        else:
+            self._storage.save_digest(digest, phase_id, current_week)
         self._storage.regenerate_html()
 
         if errors:

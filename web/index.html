@@ -1305,9 +1305,15 @@ async function init() {
       return;
     }
 
-    // Try today first, fall back to most recent
+    // Try today first; if empty, fall back to most recent with papers
     const today = todayStr();
-    let targetDate = state.allDates.includes(today) ? today : state.allDates[0];
+    let targetDate = state.allDates[0];
+    if (state.allDates.includes(today)) {
+      const todayDigest = await loadDigest(today);
+      if (todayDigest && todayDigest.total > 0) {
+        targetDate = today;
+      }
+    }
     state.currentDate = targetDate;
 
     // Preload this digest
