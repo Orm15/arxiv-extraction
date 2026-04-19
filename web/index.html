@@ -399,7 +399,19 @@
       border-color: var(--accent);
       color: var(--accent);
     }
-    .papers-list { display: flex; flex-direction: column; gap: 8px; }
+    .papers-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 600px;
+      overflow-y: auto;
+      padding-right: 4px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-strong) transparent;
+    }
+    .papers-list::-webkit-scrollbar { width: 5px; }
+    .papers-list::-webkit-scrollbar-track { background: transparent; }
+    .papers-list::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 10px; }
     .paper-card {
       background: var(--surface);
       border: 0.5px solid var(--border-strong);
