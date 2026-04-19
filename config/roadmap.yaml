@@ -10,7 +10,7 @@ phases:
 
   fase_1:
     name: "Foundation — Python + Agents"
-    total_weeks: 6
+    total_weeks: 8
     priority_topics: [agents]
     secondary_topics: [rag]
 
