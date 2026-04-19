@@ -399,7 +399,19 @@
       border-color: var(--accent);
       color: var(--accent);
     }
-    .papers-list { display: flex; flex-direction: column; gap: 8px; }
+    .papers-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 600px;
+      overflow-y: auto;
+      padding-right: 4px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-strong) transparent;
+    }
+    .papers-list::-webkit-scrollbar { width: 5px; }
+    .papers-list::-webkit-scrollbar-track { background: transparent; }
+    .papers-list::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 10px; }
     .paper-card {
       background: var(--surface);
       border: 0.5px solid var(--border-strong);
@@ -564,8 +576,32 @@
 
     @media (max-width: 640px) {
       #stats-row { grid-template-columns: repeat(2, 1fr); }
-      #topbar { padding: 0 16px; }
-      #main { padding: 20px 12px 40px; }
+
+      #topbar { padding: 0 14px; height: auto; min-height: 52px; flex-wrap: wrap; gap: 6px; padding-top: 10px; padding-bottom: 10px; }
+      #last-updated { display: none; }
+      .topbar-logo { font-size: 14px; }
+
+      #main { padding: 16px 12px 48px; }
+
+      .phase-header { flex-direction: column; gap: 4px; }
+
+      .paper-card-header { flex-direction: column; gap: 6px; }
+      .paper-card-header .badge { align-self: flex-start; }
+
+      .paper-footer { flex-direction: column; align-items: flex-start; }
+      .paper-actions { width: 100%; justify-content: flex-end; }
+      .paper-actions .btn-link,
+      .paper-actions .btn-add-tentative { padding: 5px 12px; font-size: 12px; }
+
+      .tc-authors { white-space: normal; }
+      .tc-links { flex-wrap: wrap; }
+
+      .papers-nav { gap: 6px; }
+      .nav-btn { padding: 6px 10px; }
+
+      .stat-value { font-size: 20px; }
+
+      .tentative-header { flex-wrap: wrap; gap: 6px; }
     }
   </style>
 </head>
@@ -890,7 +926,7 @@ function renderPhaseBanner(index) {
     'fase_4': 'MLOps + Fine-tuning',
     'fase_5': 'Flagship Project + Portfolio',
   };
-  const phaseTotalWeeks = { fase_0:4, fase_1:6, fase_2:6, fase_3:6, fase_4:6, fase_5:8 };
+  const phaseTotalWeeks = { fase_0:4, fase_1:8, fase_2:6, fase_3:6, fase_4:6, fase_5:8 };
   const phaseTopics = {
     fase_0: { priority: [], secondary: [] },
     fase_1: { priority: ['agents'], secondary: ['rag'] },
